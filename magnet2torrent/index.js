@@ -34,7 +34,7 @@ function getTorrentInfo(torrentId, timeout = 60000) {
 
     return new Promise((resolve, reject) => {
         var client = new WebTorrent()
-        setTimeout(() => {
+        const _timeout = setTimeout(() => {
             if (ret.metadata && ret.metadata.magnetURI) {
                 const torrentMetaFilePath = `${getTorrentFilePath(ret.metadata.magnetURI)}.meta.json`;
                 fs.writeFileSync(torrentMetaFilePath, JSON.stringify(ret, null, 2));
@@ -104,6 +104,7 @@ function getTorrentInfo(torrentId, timeout = 60000) {
             ret.errors.push(error)
             // console.log("######################### reject on", { error })
             client.destroy((err) => {
+                clearTimeout(_timeout)
                 if (err) {
                     reject(err)
                 } else {
