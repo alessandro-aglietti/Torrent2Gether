@@ -54,7 +54,7 @@ function getTorrentInfo(torrentId) {
                 infoHash: torrent.infoHash,
                 magnetURI: torrent.magnetURI,
                 announce: torrent.announce,
-                files: torrent.files.map(file => ({ name: file.name, path: file.path })),
+                // files: torrent.files?.map(file => ({ name: file.name, path: file.path })),
                 numPeers: torrent.numPeers,
                 path: torrent.path,
                 ready: torrent.ready,
