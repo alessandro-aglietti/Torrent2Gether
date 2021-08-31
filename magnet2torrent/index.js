@@ -25,6 +25,7 @@ async function magent2torrent(magnet) {
 function getTorrentInfo(torrentId, timeout = 60000) {
     const ret = {
         invokedAt: new Date(),
+        peers: [],
         errors: [],
         warnings: []
     };
@@ -117,6 +118,33 @@ function getTorrentInfo(torrentId, timeout = 60000) {
                     reject(ret)
                 }
             });
+        })
+
+        torrent.on('wire', (wire) => {
+            // https://github.com/webtorrent/webtorrent/issues/1529#issuecomment-432266162
+            wire.on('bitfield', (bitfield) => {
+                // Bits set in the bitfield.
+                var setBits = 0
+                // Maximum number of bits available to be set with the current field size.
+                var maxBits = bitfield.buffer.length << 3
+                // The maximum number of bits which constitutes the whole torrent.
+                var fullBits = torrent.pieces.length
+
+                for (i = 0; i <= maxBits; i++) {
+                    if (bitfield.get(i)) setBits++
+                }
+                var state = fullBits === setBits ? "SEEDER" : "LEECHER";
+
+                const peer = {
+                    state,
+                    peerId: wire.peerId,
+                    setBits,
+                    fullBits,
+                    ratio: setBits / fullBits
+                }
+
+                ret.peers.push(peer)
+            })
         })
     });
 }
