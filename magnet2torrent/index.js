@@ -1,4 +1,6 @@
 const parseTorrent = require('parse-torrent')
+// const WebTorrent = require('webtorrent-hybrid')
+const WebTorrent = require('webtorrent')
 const fs = require('fs')
 const axios = require('axios')
 
@@ -19,6 +21,46 @@ async function magent2torrent(magnet) {
     fs.writeFileSync(torrentFilePath, torrentFileBuffer);
 
     return torrentFilePath;
+}
+
+function getTorrentInfo(torrentId) {
+    const ret = {
+        invokedAt: new Date(),
+    };
+    return new Promise((resolve, reject) => {
+        var client = new WebTorrent()
+
+        const torrent = client.add(torrentId, {
+            destroyStoreOnDestroy: true // If truthy, client will delete the torrent's chunk store (e.g. files on disk) when the torrent is destroyed
+        });
+
+        //torrent.destroy()
+        //torrent.pause
+
+        torrent.on('infoHash', function () {
+            ret.infoHash = {
+                on: new Date(),
+            }
+            resolve(ret);
+        });
+
+        // torrent.on('metadata', function () {})
+        // torrent.on('ready', function () {})
+        torrent.on('warning', function (err) {
+            ret.warning = {
+                on: new Date(),
+                err,
+            }
+            reject(ret);
+        })
+        torrent.on('error', function (err) {
+            ret.error = {
+                on: new Date(),
+                err,
+            }
+            reject(ret);
+        })
+    });
 }
 
 module.exports = {
