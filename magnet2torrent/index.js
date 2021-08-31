@@ -1,5 +1,5 @@
 const parseTorrent = require('parse-torrent')
-const WebTorrent = require('webtorrent-hybrid')
+const WebTorrent = require('webtorrent')
 const fs = require('fs')
 
 async function magent2torrent(magnet) {
@@ -26,13 +26,11 @@ function getTorrentInfo(torrentId) {
             destroyStoreOnDestroy: true // If truthy, client will delete the torrent's chunk store (e.g. files on disk) when the torrent is destroyed
         });
 
-        //torrent.destroy()
-        //torrent.pause
-
         torrent.on('infoHash', function () {
             ret.infoHash = {
                 on: new Date(),
             }
+            torrent.destroy();
             resolve(ret);
         });
 
