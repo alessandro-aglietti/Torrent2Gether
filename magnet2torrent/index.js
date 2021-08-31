@@ -44,9 +44,25 @@ function getTorrentInfo(torrentId, timeout = 60000) {
         })
         
         const _timeout = setTimeout(() => {
-            if (ret.metadata && ret.metadata.magnetURI) {
-                const torrentMetaFilePath = `${getTorrentFilePath(ret.metadata.magnetURI)}.meta.json`;
-                fs.writeFileSync(torrentMetaFilePath, JSON.stringify(ret, null, 2));
+            if (ret.metadata) {
+
+                ret.metadata.numPeers = torrent.numPeers
+
+                if (ret.metadata.magnetURI) {
+                    const torrentMetaFilePath = `${getTorrentFilePath(ret.metadata.magnetURI)}.meta.json`;
+                    fs.writeFileSync(torrentMetaFilePath, JSON.stringify(ret, null, 2));
+                }
+
+                if (ret.metadata.piecesLength) {
+                    ret.peers = ret.peers.map((peer) => {
+                        if (peer.fullBits === 0) {
+                            const fullBits = ret.metadata.piecesLength
+                            peer.state = fullBits === peer.setBits ? "SEEDER" : "LEECHER";
+                            peer.ratio = peer.setBits / fullBits
+                        }
+                        return peer
+                    })
+                }
             }
 
             client.destroy((err) => {
@@ -86,7 +102,8 @@ function getTorrentInfo(torrentId, timeout = 60000) {
                 length: torrent.length,
                 created: torrent.created,
                 createdBy: torrent.createdBy,
-                comment: torrent.comment
+                comment: torrent.comment,
+                piecesLength: torrent.pieces.length
             }
         })
 
