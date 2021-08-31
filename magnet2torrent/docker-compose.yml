@@ -1,13 +1,8 @@
 version: '3'
 services:
   web:
-    image: brumbrum/node
+    image: node:14
     entrypoint: /data/entrypoint.sh
+    working_dir: /data
     volumes:
       - .:/data
-    # ports:
-    #   - "3000:3000"
-    # depends_on:
-    #   - postgres
-    # environment:
-    #   DATABASE_URL: postgres://todoapp@postgres/todos
