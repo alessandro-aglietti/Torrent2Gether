@@ -90,17 +90,6 @@ function getTorrentInfo(torrentId, timeout = 60000) {
             ret.warnings.push(warning)
 
             // console.log("######################### warning", { on: new Date(), ret, warn })
-
-            if (warn.toString().indexOf('getaddrinfo ENOTFOUND') === -1) {
-                // console.log("######################### reject on", { warn })
-                client.destroy((err) => {
-                    if (err) {
-                        reject(err)
-                    } else {
-                        reject(ret)
-                    }
-                });
-            }
         })
 
         torrent.on('error', function (err) {
