@@ -63,37 +63,59 @@ function getTorrentInfo(torrentId) {
                 createdBy: torrent.createdBy,
                 comment: torrent.comment
             }
-            torrent.destroy();
-            resolve(ret);
+
+            const torrentMetaFilePath = `${getTorrentFilePath(ret.metadata.magnetURI)}.meta.json`;
+            fs.writeFileSync(torrentMetaFilePath, JSON.stringify(ret, null, 2));
+
+            client.destroy((err) => {
+                if (err) {
+                    reject(err)
+                } else {
+                    resolve(ret)
+                }
+            });
         })
 
-        torrent.on('warning', function (err) {
-            ret.warnings.push = ({
+        torrent.on('warning', function (warn) {
+
+            const warning = {
                 on: new Date(),
-                err,
-            })
-            reject(ret);
+                warn,
+            }
+
+            ret.warnings.push(warning)
+
+            // console.log("######################### warning", { on: new Date(), ret, warn })
+
+            if (warn.toString().indexOf('getaddrinfo ENOTFOUND') === -1) {
+                // console.log("######################### reject on", { warn })
+                client.destroy((err) => {
+                    if (err) {
+                        reject(err)
+                    } else {
+                        reject(ret)
+                    }
+                });
+            }
         })
 
         torrent.on('error', function (err) {
             // console.log("######################### error", { on: new Date(), ret, err })
 
-            if (err.toString().indexOf('getaddrinfo ENOTFOUND') === -1) {
-                // getaddrinfo ENOTFOUND raiset on old trackers TLDs
-
-                ret.errors.push({
-                    on: new Date(),
-                    err,
-                })
-                reject(ret);
-            } else {
-                ret.warnings.push({
-                    on: new Date(),
-                    err,
-                })
-
-                // continue without resolve/reject the Promise
+            const error = {
+                on: new Date(),
+                err,
             }
+
+            ret.errors.push(error)
+            // console.log("######################### reject on", { error })
+            client.destroy((err) => {
+                if (err) {
+                    reject(err)
+                } else {
+                    reject(ret)
+                }
+            });
         })
     });
 }
