@@ -22,7 +22,7 @@ async function magent2torrent(magnet) {
     return torrentFilePath;
 }
 
-function getTorrentInfo(torrentId) {
+function getTorrentInfo(torrentId, timeout = 60000) {
     const ret = {
         invokedAt: new Date(),
         errors: [],
@@ -31,6 +31,7 @@ function getTorrentInfo(torrentId) {
     // console.log("######################### getTorrentInfo", { ret })
 
     return new Promise((resolve, reject) => {
+        setTimeout(() => resolve(ret), timeout)
         var client = new WebTorrent()
 
         const torrent = client.add(torrentId, {
