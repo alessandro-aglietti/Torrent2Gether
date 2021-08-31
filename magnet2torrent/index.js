@@ -18,6 +18,8 @@ async function magent2torrent(magnet) {
 function getTorrentInfo(torrentId) {
     const ret = {
         invokedAt: new Date(),
+        errors: [],
+        warnings: []
     };
     return new Promise((resolve, reject) => {
         var client = new WebTorrent()
@@ -53,19 +55,31 @@ function getTorrentInfo(torrentId) {
         })
 
         torrent.on('warning', function (err) {
-            ret.warning = {
+            ret.warnings.push = ({
                 on: new Date(),
                 err,
-            }
+            })
             reject(ret);
         })
 
         torrent.on('error', function (err) {
-            ret.error = {
-                on: new Date(),
-                err,
+
+            if (err.toString().indexOf('getaddrinfo ENOTFOUND') === -1) {
+                // getaddrinfo ENOTFOUND raiset on old trackers TLDs
+
+                ret.errors.push({
+                    on: new Date(),
+                    err,
+                })
+                reject(ret);
+            } else {
+                ret.warnings.push({
+                    on: new Date(),
+                    err,
+                })
+
+                // continue without resolve/reject the Promise
             }
-            reject(ret);
         })
     });
 }
