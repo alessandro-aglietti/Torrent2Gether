@@ -24,6 +24,7 @@ async function magent2torrent(magnet) {
 
 function getTorrentInfo(torrentId, timeout = 60000) {
     const ret = {
+        metdata: {},
         invokedAt: new Date(),
         peers: [],
         errors: [],
