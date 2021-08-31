@@ -30,12 +30,28 @@ function getTorrentInfo(torrentId) {
             ret.infoHash = {
                 on: new Date(),
             }
-            torrent.destroy();
-            resolve(ret);
         });
 
-        // torrent.on('metadata', function () {})
-        // torrent.on('ready', function () {})
+        torrent.on('metadata', function () {
+            ret.metadata = {
+                // "Torrent API" on https://webtorrent.io/docs
+                on: new Date(),
+                infoHash: torrent.infoHash,
+                magnetURI: torrent.magnetURI,
+                announce: torrent.announce,
+                files: torrent.files.map(file => ({ name: file.name, path: file.path })),
+                numPeers: torrent.numPeers,
+                path: torrent.path,
+                ready: torrent.ready,
+                length: torrent.length,
+                created: torrent.created,
+                createdBy: torrent.createdBy,
+                comment: torrent.comment
+            }
+            torrent.destroy();
+            resolve(ret);
+        })
+
         torrent.on('warning', function (err) {
             ret.warning = {
                 on: new Date(),
@@ -43,6 +59,7 @@ function getTorrentInfo(torrentId) {
             }
             reject(ret);
         })
+
         torrent.on('error', function (err) {
             ret.error = {
                 on: new Date(),
