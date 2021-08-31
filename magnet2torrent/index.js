@@ -108,7 +108,7 @@ function getTorrentInfo(torrentId, timeout = 60000) {
                 if (err) {
                     reject(err)
                 } else {
-                    reject(ret)
+                    reject(error)
                 }
             });
         })
