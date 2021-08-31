@@ -11,7 +11,9 @@ test('getTorrentInfo', async () => {
     const torrentInfos = await getTorrentInfo(magnet);
     expect(torrentInfos).toHaveProperty('invokedAt');
     expect(torrentInfos).toHaveProperty('errors');
-    expect(torrentInfos.errors).toBe([]);
+    expect(torrentInfos.errors.length).toBe(0);
     expect(torrentInfos).toHaveProperty('infoHash');
     expect(torrentInfos.infoHash).toHaveProperty('on');
-});
+    expect(torrentInfos).toHaveProperty('metadata');
+
+}, 60000);
