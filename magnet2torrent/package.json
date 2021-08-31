@@ -9,8 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.21.1",
-    "parse-torrent": "^9.1.4"
+    "parse-torrent": "^9.1.4",
+    "webtorrent-hybrid": "^5.0.0"
   },
   "devDependencies": {
     "jest": "^27.1.0"

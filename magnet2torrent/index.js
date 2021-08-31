@@ -1,18 +1,10 @@
 const parseTorrent = require('parse-torrent')
-// const WebTorrent = require('webtorrent-hybrid')
-const WebTorrent = require('webtorrent')
+const WebTorrent = require('webtorrent-hybrid')
 const fs = require('fs')
-const axios = require('axios')
-
-// info hash (as a hex string)
-
 
 async function magent2torrent(magnet) {
     const parsedMagnet = parseTorrent(magnet);
     const torrentFileBuffer = parseTorrent.toTorrentFile(parsedMagnet);
-
-    //const torrageUrl = `https://t.torrage.info/download?h=${infoHash}`;
-    //const { data } = await axios.get(torrageUrl);
     
     const infoHash = parsedMagnet.infoHash;
     const torrentFileName = `${infoHash.toUpperCase()}.torrent`;
@@ -64,5 +56,6 @@ function getTorrentInfo(torrentId) {
 }
 
 module.exports = {
-    magent2torrent
+    magent2torrent,
+    getTorrentInfo
 }
