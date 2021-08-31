@@ -28,6 +28,8 @@ function getTorrentInfo(torrentId) {
         errors: [],
         warnings: []
     };
+    // console.log("######################### getTorrentInfo", { ret })
+
     return new Promise((resolve, reject) => {
         var client = new WebTorrent()
 
@@ -36,12 +38,16 @@ function getTorrentInfo(torrentId) {
         });
 
         torrent.on('infoHash', function () {
+            // console.log("######################### warning", { on: new Date(), ret })
+
             ret.infoHash = {
                 on: new Date(),
             }
         });
 
         torrent.on('metadata', function () {
+            // console.log("######################### metadata", { on: new Date(), ret })
+
             ret.metadata = {
                 // "Torrent API" on https://webtorrent.io/docs
                 on: new Date(),
@@ -70,6 +76,7 @@ function getTorrentInfo(torrentId) {
         })
 
         torrent.on('error', function (err) {
+            // console.log("######################### error", { on: new Date(), ret, err })
 
             if (err.toString().indexOf('getaddrinfo ENOTFOUND') === -1) {
                 // getaddrinfo ENOTFOUND raiset on old trackers TLDs
