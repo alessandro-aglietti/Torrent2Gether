@@ -2,14 +2,21 @@ const parseTorrent = require('parse-torrent')
 const WebTorrent = require('webtorrent')
 const fs = require('fs')
 
-async function magent2torrent(magnet) {
+function getTorrentFilePath(magnet) {
     const parsedMagnet = parseTorrent(magnet);
-    const torrentFileBuffer = parseTorrent.toTorrentFile(parsedMagnet);
-    
+
     const infoHash = parsedMagnet.infoHash;
     const torrentFileName = `${infoHash.toUpperCase()}.torrent`;
     const torrentsFolder = `${__dirname}/torrents`
     const torrentFilePath = `${torrentsFolder}/${torrentFileName}`;
+
+    return torrentFilePath
+}
+
+async function magent2torrent(magnet) {
+    const parsedMagnet = parseTorrent(magnet);
+    const torrentFileBuffer = parseTorrent.toTorrentFile(parsedMagnet);
+    const torrentFilePath = getTorrentFilePath(magnet);
     fs.writeFileSync(torrentFilePath, torrentFileBuffer);
 
     return torrentFilePath;
