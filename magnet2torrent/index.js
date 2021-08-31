@@ -32,8 +32,21 @@ function getTorrentInfo(torrentId, timeout = 60000) {
     // console.log("######################### getTorrentInfo", { ret })
 
     return new Promise((resolve, reject) => {
-        setTimeout(() => resolve(ret), timeout)
         var client = new WebTorrent()
+        setTimeout(() => {
+            if (ret.metadata && ret.metadata.magnetURI) {
+                const torrentMetaFilePath = `${getTorrentFilePath(ret.metadata.magnetURI)}.meta.json`;
+                fs.writeFileSync(torrentMetaFilePath, JSON.stringify(ret, null, 2));
+            }
+
+            client.destroy((err) => {
+                if (err) {
+                    reject(err)
+                } else {
+                    resolve(ret)
+                }
+            });
+        }, timeout)
 
         const torrent = client.add(torrentId, {
             destroyStoreOnDestroy: true // If truthy, client will delete the torrent's chunk store (e.g. files on disk) when the torrent is destroyed
@@ -65,17 +78,6 @@ function getTorrentInfo(torrentId, timeout = 60000) {
                 createdBy: torrent.createdBy,
                 comment: torrent.comment
             }
-
-            const torrentMetaFilePath = `${getTorrentFilePath(ret.metadata.magnetURI)}.meta.json`;
-            fs.writeFileSync(torrentMetaFilePath, JSON.stringify(ret, null, 2));
-
-            client.destroy((err) => {
-                if (err) {
-                    reject(err)
-                } else {
-                    resolve(ret)
-                }
-            });
         })
 
         torrent.on('warning', function (warn) {
