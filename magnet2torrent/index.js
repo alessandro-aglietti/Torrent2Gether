@@ -33,7 +33,7 @@ function getTorrentInfo(torrentId, timeout = 60000) {
     // console.log("######################### getTorrentInfo", { ret })
 
     return new Promise((resolve, reject) => {
-        var client = new WebTorrent()
+        const client = new WebTorrent()
         client.on('error', function (err) {
             const error = {
                 on: new Date(),
@@ -112,30 +112,31 @@ function getTorrentInfo(torrentId, timeout = 60000) {
 
             ret.errors.push(error)
             // console.log("######################### reject on", { error })
-            client.destroy((err) => {
-                clearTimeout(_timeout)
-                if (err) {
-                    reject(err)
-                } else {
-                    reject(error)
-                }
-            });
+            // client.destroy((err) => {
+            //     clearTimeout(_timeout)
+            //     if (err) {
+            //         reject(err)
+            //     } else {
+            //         reject(error)
+            //     }
+            // });
         })
 
         torrent.on('wire', (wire) => {
             // https://github.com/webtorrent/webtorrent/issues/1529#issuecomment-432266162
             wire.on('bitfield', (bitfield) => {
+                // wire.destroy()
                 // Bits set in the bitfield.
-                var setBits = 0
+                let setBits = 0
                 // Maximum number of bits available to be set with the current field size.
-                var maxBits = bitfield.buffer.length << 3
+                const maxBits = bitfield.buffer.length << 3
                 // The maximum number of bits which constitutes the whole torrent.
-                var fullBits = torrent.pieces.length
+                const fullBits = torrent.pieces.length
 
                 for (i = 0; i <= maxBits; i++) {
                     if (bitfield.get(i)) setBits++
                 }
-                var state = fullBits === setBits ? "SEEDER" : "LEECHER";
+                const state = fullBits === setBits ? "SEEDER" : "LEECHER";
 
                 const peer = {
                     on: new Date(),
