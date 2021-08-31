@@ -1,0 +1,16 @@
+language: node_js
+node_js:
+  - lts/*
+
+services:
+  - docker
+
+# safelist
+branches:
+  only:
+  - master
+
+script:
+- node -v
+- cd magnet2torrent
+- CI=true docker-compose up --exit-code-from webtorrent --abort-on-container-exit

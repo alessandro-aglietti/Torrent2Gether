@@ -1,8 +1,10 @@
 version: '3'
 services:
-  web:
+  webtorrent:
     image: node:14
     entrypoint: /data/entrypoint.sh
     working_dir: /data
+    environment:
+      - CI
     volumes:
       - .:/data
