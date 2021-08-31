@@ -127,10 +127,12 @@ function getTorrentInfo(torrentId, timeout = 60000) {
                 var state = fullBits === setBits ? "SEEDER" : "LEECHER";
 
                 const peer = {
+                    on: new Date(),
                     state,
                     peerId: wire.peerId,
                     setBits,
                     fullBits,
+                    type: wire.type,
                     ratio: setBits / fullBits
                 }
 
