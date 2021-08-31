@@ -5,6 +5,10 @@ node_js:
 services:
   - docker
 
+addons:
+  sonarcloud:
+    organization: "alessandro-aglietti-torrent2gheter"
+
 # safelist
 branches:
   only:
@@ -15,3 +19,5 @@ script:
 - cd magnet2torrent
 - CI=true docker-compose up --exit-code-from webtorrent --abort-on-container-exit
 - cat torrents/7FA6EC9C323CA54A33DF16C8F41272A41A8ACB32.torrent.meta.json
+- echo "sonar.login=$SONAR_CLOUD_TOKEN" >> ../sonar-project.properties
+- sonar-scanner -X
