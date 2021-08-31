@@ -34,6 +34,15 @@ function getTorrentInfo(torrentId, timeout = 60000) {
 
     return new Promise((resolve, reject) => {
         var client = new WebTorrent()
+        client.on('error', function (err) {
+            const error = {
+                on: new Date(),
+                err,
+            }
+
+            ret.errors.push(error)
+        })
+        
         const _timeout = setTimeout(() => {
             if (ret.metadata && ret.metadata.magnetURI) {
                 const torrentMetaFilePath = `${getTorrentFilePath(ret.metadata.magnetURI)}.meta.json`;
