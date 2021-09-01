@@ -17,3 +17,16 @@ test('getTorrentInfo', async () => {
     expect(torrentInfos.metadata).toHaveProperty('numPeers_onMetadata');
     expect(torrentInfos.metadata).toHaveProperty('numPeers_beforeStatsReport');
 }, 60000);
+
+test('getTorrentInfo only btih', async () => {
+    const magnet = "magnet:?xt=urn:btih:5cf4ddd89c66fba956604659ff41a46029c24e0a";
+    const torrentInfos = await getTorrentInfo(magnet);
+    expect(torrentInfos).toHaveProperty('invokedAt');
+    expect(torrentInfos).toHaveProperty('errors');
+    expect(torrentInfos.errors.length).toBe(0);
+    expect(torrentInfos).toHaveProperty('infoHash');
+    expect(torrentInfos.infoHash).toHaveProperty('on');
+    expect(torrentInfos).toHaveProperty('metadata');
+    expect(torrentInfos.metadata).toHaveProperty('numPeers_onMetadata');
+    expect(torrentInfos.metadata).toHaveProperty('numPeers_beforeStatsReport');
+}, 60000);
