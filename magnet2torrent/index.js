@@ -109,11 +109,11 @@ function getWebTorrentClient(hybrid = false) {
     return new WebTorrent()
 }
 
-function getTorrentMagnetFromFile (torrentFileName, onlyWSS = false) {
+function getTorrentMagnetFromFile(torrentFileName, onlyWSS = false) {
     const parsedTorrentFile = parseTorrent(fs.readFileSync(torrentFileName))
     const infoHash = parsedTorrentFile.infoHash.toUpperCase()
     const magnetObj = {
-        xt : [
+        xt: [
             `urn:btih:${infoHash}`
         ],
         announce: onlyWSS ? parsedTorrentFile.announce.filter(tr => tr.indexOf("wss") !== -1) : parsedTorrentFile.announce // tr
@@ -121,7 +121,7 @@ function getTorrentMagnetFromFile (torrentFileName, onlyWSS = false) {
     return magnetUri.encode(magnetObj)
 }
 
-function getTorrentInfo(torrentId, peersCountThreshold = 10, hybrid = false, waitForWrtcPeer = false, timeoutThreshold = 10000) {
+function getTorrentInfo(torrentId, peersCountThreshold = 0, hybrid = false, waitForFirstWrtcPeer = false, timeoutThreshold = 10000) {
     const ret = {
         on: new Date(),
         metadata: {
@@ -185,7 +185,10 @@ function getTorrentInfo(torrentId, peersCountThreshold = 10, hybrid = false, wai
                 piecesLength: ret.torrent.pieces.length
             }
 
-            if (!waitForWrtcPeer) {
+            if (
+                peersCountThreshold === 0 && !waitForFirstWrtcPeer
+            ) {
+                // se non abbiamo threshold e non aspettiamo wrtc client
                 clearTimeout(_timeout)
                 destroyer(client, ret, resolve, reject)
             }
@@ -215,13 +218,13 @@ function getTorrentInfo(torrentId, peersCountThreshold = 10, hybrid = false, wai
                 // wire.destroy()
                 const peerInfo = bitfield2peerInfo(bitfield, wire, ret.torrent)
                 ret.peers.push(peerInfo)
-                if (waitForWrtcPeer && peerInfo.type === 'webrtc') {
+                if (waitForFirstWrtcPeer && peerInfo.type === 'webrtc') {
                     clearTimeout(_timeout)
                     destroyer(client, ret, resolve, reject)
                 }
-                if (peersCount(ret.peers) > peersCountThreshold) {
-                    // clearTimeout(_timeout)
-                    // destroyer(client, ret, resolve, reject)
+                if (!waitForFirstWrtcPeer && peersCountThreshold && (peersCount(ret.peers) > peersCountThreshold)) {
+                    clearTimeout(_timeout)
+                    destroyer(client, ret, resolve, reject)
                 }
             })
         })
