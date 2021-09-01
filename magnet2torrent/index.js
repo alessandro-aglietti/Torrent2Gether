@@ -1,5 +1,7 @@
 const parseTorrent = require('parse-torrent')
-const WebTorrent = require('webtorrent')
+const { announceList } = require('create-torrent')
+const magnetUri = require('magnet-uri')
+const wrtc = require('wrtc')
 const fs = require('fs')
 
 function getTorrentFilePath(magnet) {
@@ -93,7 +95,33 @@ function peersCount(peers) {
     return new Set(peers.map(peer => peer.peerId)).size
 }
 
-function getTorrentInfo(torrentId, peersCountThreshold = 10) {
+function getWebTorrentClient(hybrid = false) {
+    if (hybrid) {
+        globalThis.WEBTORRENT_ANNOUNCE = announceList
+            .map(arr => arr[0])
+            .filter(url => url.indexOf('wss://') === 0 || url.indexOf('ws://') === 0)
+
+        globalThis.WRTC = wrtc
+    }
+
+    const WebTorrent = require('webtorrent')
+
+    return new WebTorrent()
+}
+
+function getTorrentMagnetFromFile (torrentFileName, onlyWSS = false) {
+    const parsedTorrentFile = parseTorrent(fs.readFileSync(torrentFileName))
+    const infoHash = parsedTorrentFile.infoHash.toUpperCase()
+    const magnetObj = {
+        xt : [
+            `urn:btih:${infoHash}`
+        ],
+        announce: onlyWSS ? parsedTorrentFile.announce.filter(tr => tr.indexOf("wss") !== -1) : parsedTorrentFile.announce // tr
+    };
+    return magnetUri.encode(magnetObj)
+}
+
+function getTorrentInfo(torrentId, peersCountThreshold = 10, hybrid = false, waitForWrtcPeer = false) {
     const ret = {
         on: new Date(),
         metadata: {
@@ -110,7 +138,7 @@ function getTorrentInfo(torrentId, peersCountThreshold = 10) {
     };
 
     return new Promise((resolve, reject) => {
-        const client = new WebTorrent()
+        const client = getWebTorrentClient(hybrid)
         client.on('error', function (err) {
             const error = {
                 on: new Date(),
@@ -156,7 +184,7 @@ function getTorrentInfo(torrentId, peersCountThreshold = 10) {
                 piecesLength: ret.torrent.pieces.length
             }
 
-            destroyer(client, ret, resolve, reject)
+            if (!waitForWrtcPeer) destroyer(client, ret, resolve, reject)
         })
 
         ret.torrent.on('warning', function (warn) {
@@ -180,7 +208,11 @@ function getTorrentInfo(torrentId, peersCountThreshold = 10) {
             // https://github.com/webtorrent/webtorrent/issues/1529#issuecomment-432266162
             wire.on('bitfield', (bitfield) => {
                 // wire.destroy()
-                ret.peers.push(bitfield2peerInfo(bitfield, wire, ret.torrent))
+                const peerInfo = bitfield2peerInfo(bitfield, wire, ret.torrent)
+                ret.peers.push(peerInfo)
+                if (waitForWrtcPeer && peerInfo.type === 'webrtc') {
+                    destroyer(client, ret, resolve, reject)
+                }
                 if (peersCount(ret.peers) > peersCountThreshold) {
                     // destroyer(client, ret, resolve, reject)
                 }
@@ -193,5 +225,6 @@ function getTorrentInfo(torrentId, peersCountThreshold = 10) {
 
 module.exports = {
     magent2torrent,
-    getTorrentInfo
+    getTorrentInfo,
+    getTorrentMagnetFromFile
 }
