@@ -22,13 +22,19 @@ async function magent2torrent(magnet) {
     return torrentFilePath;
 }
 
-function getTorrentInfo(torrentId, timeout = 60000) {
+async function getTorrentInfo(torrentId, timeout = 60000) {
     const ret = {
-        metadata: {},
+        metadata: {
+            numPeers: null,
+        },
         invokedAt: new Date(),
         peers: [],
         errors: [],
-        warnings: []
+        warnings: [],
+        torrent: {},
+        infoHash: {
+            on: null
+        }
     };
     // console.log("######################### getTorrentInfo", { ret })
 
@@ -46,7 +52,7 @@ function getTorrentInfo(torrentId, timeout = 60000) {
         const _timeout = setTimeout(() => {
             if (ret.metadata) {
 
-                ret.metadata.numPeers = torrent.numPeers
+                ret.metadata.numPeers = ret.torrent.numPeers
 
                 if (ret.metadata.magnetURI) {
                     const torrentMetaFilePath = `${getTorrentFilePath(ret.metadata.magnetURI)}.meta.json`;
@@ -74,11 +80,12 @@ function getTorrentInfo(torrentId, timeout = 60000) {
             });
         }, timeout)
 
-        const torrent = client.add(torrentId, {
+        // start of torrent oNs
+        ret.torrent = client.add(torrentId, {
             destroyStoreOnDestroy: true // If truthy, client will delete the torrent's chunk store (e.g. files on disk) when the torrent is destroyed
         });
 
-        torrent.on('infoHash', function () {
+        ret.torrent.on('infoHash', function () {
             // console.log("######################### warning", { on: new Date(), ret })
 
             ret.infoHash = {
@@ -86,7 +93,7 @@ function getTorrentInfo(torrentId, timeout = 60000) {
             }
         });
 
-        torrent.on('metadata', function () {
+        ret.torrent.on('metadata', function () {
             // console.log("######################### metadata", { on: new Date(), ret })
 
             ret.metadata = {
@@ -107,7 +114,7 @@ function getTorrentInfo(torrentId, timeout = 60000) {
             }
         })
 
-        torrent.on('warning', function (warn) {
+        ret.torrent.on('warning', function (warn) {
 
             const warning = {
                 on: new Date(),
@@ -119,7 +126,7 @@ function getTorrentInfo(torrentId, timeout = 60000) {
             // console.log("######################### warning", { on: new Date(), ret, warn })
         })
 
-        torrent.on('error', function (err) {
+        ret.torrent.on('error', function (err) {
             // console.log("######################### error", { on: new Date(), ret, err })
 
             const error = {
@@ -139,7 +146,7 @@ function getTorrentInfo(torrentId, timeout = 60000) {
             // });
         })
 
-        torrent.on('wire', (wire) => {
+        ret.torrent.on('wire', (wire) => {
             // https://github.com/webtorrent/webtorrent/issues/1529#issuecomment-432266162
             wire.on('bitfield', (bitfield) => {
                 // wire.destroy()
@@ -168,6 +175,7 @@ function getTorrentInfo(torrentId, timeout = 60000) {
                 ret.peers.push(peer)
             })
         })
+        // end of torrent oNs
     });
 }
 
