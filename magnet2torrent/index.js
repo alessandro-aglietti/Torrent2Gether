@@ -126,6 +126,7 @@ function getTorrentInfo(torrentId, peersCountThreshold = 0, hybrid = false, wait
         on: new Date(),
         metadata: {
             numPeers: null,
+            magnetURI: torrentId
         },
         invokedAt: new Date(),
         peers: [],

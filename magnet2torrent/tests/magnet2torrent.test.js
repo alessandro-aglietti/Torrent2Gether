@@ -31,6 +31,19 @@ test('getTorrentInfo only btih', async () => {
     expect(torrentInfos.metadata).toHaveProperty('numPeers_beforeStatsReport');
 }, 60000);
 
+test('getTorrentInfo only btih peersCountThreshold 2', async () => {
+    const magnet = "magnet:?xt=urn:btih:514e5b1830b4b8d7b748e1aae8b076bd7b0faeff";
+    const torrentInfos = await getTorrentInfo(magnet, 2);
+    expect(torrentInfos).toHaveProperty('invokedAt');
+    expect(torrentInfos).toHaveProperty('errors');
+    expect(torrentInfos.errors.length).toBe(0);
+    expect(torrentInfos).toHaveProperty('infoHash');
+    expect(torrentInfos.infoHash).toHaveProperty('on');
+    expect(torrentInfos).toHaveProperty('metadata');
+    expect(torrentInfos.metadata).toHaveProperty('numPeers_byPeersPeerId');
+    expect(torrentInfos.metadata).toHaveProperty('numPeers_beforeStatsReport');
+}, 60000);
+
 test('getTorrentMagnetFromFile only wss', async () => {
     const torrentMagnet = await getTorrentMagnetFromFile(`${__dirname}/data/sintel.torrent`, true);
     expect(torrentMagnet).toBe('magnet:?xt=urn:btih:08ADA5A7A6183AAE1E09D831DF6748D566095A10&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com&tr=wss%3A%2F%2Ftracker.fastcast.nz');
