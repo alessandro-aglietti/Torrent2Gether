@@ -39,7 +39,7 @@ test('getTorrentMagnetFromFile only wss', async () => {
 
 test('getTorrentFromFile only wss', async () => {
     const torrentMagnet = await getTorrentMagnetFromFile(`${__dirname}/data/sintel.torrent`, true);
-    const torrentInfos = await getTorrentInfo(torrentMagnet, 10, true, true);
+    const torrentInfos = await getTorrentInfo(torrentMagnet, 10, true, true, 15000);
     expect(torrentInfos).toHaveProperty('invokedAt');
     expect(torrentInfos).toHaveProperty('errors');
     expect(torrentInfos.errors.length).toBe(0);
@@ -48,4 +48,19 @@ test('getTorrentFromFile only wss', async () => {
     expect(torrentInfos).toHaveProperty('metadata');
     expect(torrentInfos.metadata).toHaveProperty('numPeers_onMetadata');
     expect(torrentInfos.metadata).toHaveProperty('numPeers_beforeStatsReport');
+}, 60000);
+
+
+test('setTimeout and Promise', async () => {
+    function zio() {
+        const ret = "ok"
+
+        return new Promise((resolve, reject) => {
+            const _timeout = setTimeout(() => resolve(ret), 2000);
+        });
+    }
+
+    const pp = await zio();
+
+    expect(pp).toBe("ok");
 }, 60000);

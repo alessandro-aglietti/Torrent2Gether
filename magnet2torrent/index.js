@@ -121,7 +121,7 @@ function getTorrentMagnetFromFile (torrentFileName, onlyWSS = false) {
     return magnetUri.encode(magnetObj)
 }
 
-function getTorrentInfo(torrentId, peersCountThreshold = 10, hybrid = false, waitForWrtcPeer = false) {
+function getTorrentInfo(torrentId, peersCountThreshold = 10, hybrid = false, waitForWrtcPeer = false, timeoutThreshold = 10000) {
     const ret = {
         on: new Date(),
         metadata: {
@@ -139,6 +139,7 @@ function getTorrentInfo(torrentId, peersCountThreshold = 10, hybrid = false, wai
 
     return new Promise((resolve, reject) => {
         const client = getWebTorrentClient(hybrid)
+        const _timeout = setTimeout(() => destroyer(client, ret, resolve, reject), timeoutThreshold);
         client.on('error', function (err) {
             const error = {
                 on: new Date(),
@@ -184,7 +185,10 @@ function getTorrentInfo(torrentId, peersCountThreshold = 10, hybrid = false, wai
                 piecesLength: ret.torrent.pieces.length
             }
 
-            if (!waitForWrtcPeer) destroyer(client, ret, resolve, reject)
+            if (!waitForWrtcPeer) {
+                clearTimeout(_timeout)
+                destroyer(client, ret, resolve, reject)
+            }
         })
 
         ret.torrent.on('warning', function (warn) {
@@ -201,6 +205,7 @@ function getTorrentInfo(torrentId, peersCountThreshold = 10, hybrid = false, wai
                 err,
             }
             ret.errors.push(error)
+            clearTimeout(_timeout)
             destroyer(client, ret, resolve, reject)
         })
 
@@ -211,9 +216,11 @@ function getTorrentInfo(torrentId, peersCountThreshold = 10, hybrid = false, wai
                 const peerInfo = bitfield2peerInfo(bitfield, wire, ret.torrent)
                 ret.peers.push(peerInfo)
                 if (waitForWrtcPeer && peerInfo.type === 'webrtc') {
+                    clearTimeout(_timeout)
                     destroyer(client, ret, resolve, reject)
                 }
                 if (peersCount(ret.peers) > peersCountThreshold) {
+                    // clearTimeout(_timeout)
                     // destroyer(client, ret, resolve, reject)
                 }
             })
