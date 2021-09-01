@@ -13,6 +13,6 @@
     "webtorrent": "^1.5.4"
   },
   "devDependencies": {
-    "jest": "^27.1.0"
+    "jest-sonar-reporter": "^2.0.0"
   }
 }
