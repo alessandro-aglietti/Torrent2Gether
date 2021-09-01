@@ -6,6 +6,6 @@ if [ -z "$CI" ]
 then
     npm run test -- --watchAll
 else
-    // CI=true
+    # CI=true
     npm run test
 fi
